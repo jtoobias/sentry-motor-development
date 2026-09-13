@@ -1,6 +1,6 @@
-#include "test_lib.h"
+#include <gpiod.hpp>
 
 int main() {
-    test_lib::say_hello();
+    
     return 0;
 }

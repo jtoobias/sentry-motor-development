@@ -1,8 +1,10 @@
-#include "test_lib.h"
+#include "gpio_wrapper.hpp"
 #include <iostream>
+#include <gpiod.hpp>
 
-namespace test_lib {
+namespace gpio {
     void say_hello() {
         std::cout << "Hello from my custom library!" << std::endl;
     }
+    
 }
