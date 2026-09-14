@@ -1,10 +1,17 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(gpio_wrapper)
-set(CMAKE_CXX_STANDARD 11)
+# 1. Force C++20 standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GPIOD REQUIRED libgpiod)
-pkg_check_modules(GPIODCXX REQUIRED libgpiodcxx)
+# 2. Automatically download the {fmt} library
+include(FetchContent)
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com
+  GIT_TAG        11.0.2 # Uses a stable version
+)
+FetchContent_MakeAvailable(fmt)
 
 target_include_directories(gpio_wrapper PRIVATE ${GPIODCXX_INCLUDE_DIRS})
 target_link_libraries(gpio_wrapper PRIVATE ${GPIODCXX_LIBRARIES} ${GPIOD_LIBRARIES})

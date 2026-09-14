@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unordered_map>
 #include <string.h>
-#include "gpio_pin.h"
+#include "gpio_pin.hpp"
 
 using std::unordered_map;
 using std::string;

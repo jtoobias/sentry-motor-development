@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(moteus_test)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 
 # 1. Add the moteus folder so CMake processes its CMakeLists.txt
 # add_subdirectory(third_party/moteus)
