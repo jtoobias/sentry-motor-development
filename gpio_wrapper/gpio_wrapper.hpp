@@ -16,8 +16,6 @@ struct PinLocation {
 
 class PinRegistry{
     public:
-
-    private:
     unordered_map<int, PinLocation> pin_map = {
         {3,  {"34120000.gpio", 8}},   // I2C5_SDA -- shares line with pin 22 (GPIO25), see TODO
         {5,  {"34120000.gpio", 10}},  // I2C5_SCL
@@ -55,4 +53,6 @@ class PinRegistry{
     //       Consider adding a conflict-tracking field to PinLocation so the
     //       registry/factory can warn on this before attempting a request.
 
+
+    private:
 };
