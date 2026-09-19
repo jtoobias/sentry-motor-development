@@ -2,18 +2,10 @@
 #include <chrono>
 #include <thread>
 #include "gpio_wrapper/gpio_pin.hpp"
-#include "gpio_wrapper/gpio_wrapper.hpp"
-#include <fmt/core.h>
 
 int main() {
-    PinRegistry reg;
-    const int pin = 11;
     int val = 0;
-    PinLocation pin_loc = reg.pin_map[pin];
-    std::cout<<fmt::format("Gpio pin {0} for chip '{1}' for offset {2}",pin,pin_loc.chip_label,pin_loc.offset)
-    <<std::endl;
-    GpioPin gpio_pin(pin_loc.chip_label,
-                    pin_loc.offset,
+    GpioPin gpio_pin(17,
                     PinMode::Output,
                     PullMode::None,
                     false);

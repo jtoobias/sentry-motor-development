@@ -17,7 +17,7 @@ FetchContent_MakeAvailable(fmt)
 
 
 # 3. Create the library target FIRST
-add_library(gpio_wrapper STATIC gpio_wrapper.cpp gpio_pin.cpp)
+add_library(gpio_wrapper STATIC gpio_pin.cpp)
 
 # 4. Now attach settings to the target (Using PUBLIC so the main app inherits them)
 target_include_directories(gpio_wrapper PUBLIC ${GPIODCXX_INCLUDE_DIRS})
