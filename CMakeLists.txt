@@ -18,12 +18,23 @@ FetchContent_Declare(
     DOWNLOAD_COMMAND ""
 )
 
-# This replaces your old add_subdirectory() line safely
 FetchContent_MakeAvailable(gpio_wrapper)
+
+FetchContent_Declare(
+  moteus
+  GIT_REPOSITORY https://github.com/mjbots/moteus.git
+  # Pin to a specific commit for a reproducible build.  The trailing
+  # comment names the corresponding C++ release tag for readers.
+  GIT_TAG        e4459e78aa80a90d40ccfc57584e1cd94b6903e2  # cpp/v1.0.0
+)
+FetchContent_MakeAvailable(moteus)
+
 
 
 # 2. Define your executable main program
 add_executable(main main.cpp)
+add_executable(spin src/spin.cpp)
+target_link_libraries(spin moteus::cpp)
 
 # 4. Link everything to your executable target (gpio_toggle)
 target_include_directories(main PRIVATE 
