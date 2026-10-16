@@ -7,9 +7,10 @@
 
 std::optional<CurrentStatus> handle_moteus_resuls(auto &result){
   if (!result) return std::nullopt;
-    status.position = result->values.position;
-    status.status_code = result->values.fault;
-    status.speed = result->values.velocity;
+  CurrentStatus status;
+  status.position = result->values.position;
+  status.status_code = result->values.fault;
+  status.speed = result->values.velocity;
   return status;
 }
 
