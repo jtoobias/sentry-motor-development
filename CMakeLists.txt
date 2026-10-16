@@ -3,6 +3,7 @@ project(moteus_test)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 1. FIND PACKAGES FIRST (So the variables actually exist)
 find_package(PkgConfig REQUIRED)
@@ -10,7 +11,6 @@ pkg_check_modules(GPIOD REQUIRED libgpiod)
 pkg_check_modules(GPIODCXX REQUIRED libgpiodcxx)
 
 include(FetchContent)
-
 FetchContent_Declare(
     gpio_wrapper
     # Replace this with the absolute or relative path to your moved library
@@ -19,7 +19,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(gpio_wrapper)
-
 FetchContent_Declare(
   moteus
   GIT_REPOSITORY https://github.com/mjbots/moteus.git
@@ -29,20 +28,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(moteus)
 
-
-
 # 2. Define your executable main program
-add_executable(main main.cpp)
+add_executable(main main.cpp src/moteus_controller.cpp)
 add_executable(spin src/spin.cpp)
-target_link_libraries(spin moteus::cpp)
+target_link_libraries(spin PRIVATE moteus::cpp)
 
 # 4. Link everything to your executable target (gpio_toggle)
 target_include_directories(main PRIVATE 
     ${GPIODCXX_INCLUDE_DIRS}
-    # ✅ Fixes '#include "gpio_wrapper/..."' by adding the parent folder to the search path
     "${CMAKE_CURRENT_SOURCE_DIR}/.." 
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 target_link_libraries(main PRIVATE 
+    moteus::cpp
     gpio_wrapper           # Links your custom GPIO code
     ${GPIODCXX_LIBRARIES}  # Links libgpiod C++
     ${GPIOD_LIBRARIES}     # Links libgpiod C base

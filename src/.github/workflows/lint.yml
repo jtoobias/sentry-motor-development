@@ -1,0 +1,26 @@
+name: C++ Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  cpp-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Generates the compile_commands.json inside the runner environment
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      # Automatically lints your code and prints a beautiful report
+      - name: Run Clang-Tidy & Format
+        uses: cpp-linter/cpp-linter-action@v2
+        with:
+          style: 'LLVM' # Enforces standard LLVM formatting
+          tidy-checks: '' # Reads directly from your root .clang-tidy file
+          database: 'build' # Points to the CMake compilation database
