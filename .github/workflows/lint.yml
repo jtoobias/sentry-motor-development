@@ -13,6 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgpiod-dev pkg-config s
+
       # Generates the compile_commands.json inside the runner environment
       - name: Configure CMake
         run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
