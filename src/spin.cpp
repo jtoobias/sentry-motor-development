@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     }
 
   controller.SetStop();
-  double increment = 0.05;
+  double increment = 0.001;
   while (true) {
     command.position += increment;
     const auto maybe_result = controller.SetPosition(command);
@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
                 << " Velocity: " << v.velocity << "\n";
     }
     ::usleep(10000);
-    if ((command.position >= 5.0 && increment > 0) ||
-        (command.position <= -5.0 && increment < 0)){
+    if ((command.position >= 1.0 && increment > 0) ||
+        (command.position <= -1.0 && increment < 0)){
 
       std::cout << "Flip" << increment << std::endl;
       increment *= -1;
