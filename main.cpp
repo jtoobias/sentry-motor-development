@@ -15,8 +15,6 @@ int main() {
                     PullMode::None,
                     false);
 
-    testLinting();
-
     while (true) {
         val = gpio_pin.read();
         if ((val == false)){

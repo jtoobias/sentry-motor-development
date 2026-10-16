@@ -1,3 +1,4 @@
+#include <limits>
 //ToDo:
 /* Script to home a motor:
 - I need a base class for a motor that has the following:
@@ -7,9 +8,9 @@
 */
 
 struct CurrentStatus{
-  float position;
-  float speed;
-  float status_code;
+  double position = std::numeric_limits<double>::quiet_NaN();
+  double speed = std::numeric_limits<double>::quiet_NaN();
+  int8_t status_code = std::numeric_limits<int8_t>::quiet_NaN();
 };
 
 class MotorBase{
@@ -25,7 +26,7 @@ class MotorBase{
      * 
      * @param Max speed: Is in deg/s (user friendly)
      */
-    virtual CurrentStatus position_move_absolute(float position, float max_speed)=0;
+    virtual std::optional<CurrentStatus> position_move_absolute(double position,double acceleration_limit, double max_speed)=0;
 
     /**
      * @brief Move to an relative position from current position
@@ -35,12 +36,12 @@ class MotorBase{
      * 
      * @param Max speed: Is in deg/s (user friendly)
      */
-    virtual CurrentStatus position_move_relative(float position, float max_speed)=0;
+    virtual std::optional<CurrentStatus> position_move_relative(double position,double acceleration_limit, double max_speed)=0;
 
     /**
      * @brief Stop all mostion and break if possible
      */
-    virtual CurrentStatus stop(void)=0;
+    virtual std::optional<CurrentStatus> stop(void)=0;
 
     /**
      * @brief Set the absolute position object
@@ -48,6 +49,6 @@ class MotorBase{
      * @param position 
      * @return CurrentStatus 
      */
-    virtual CurrentStatus set_absolute_position(float position)=0;
+    virtual std::optional<CurrentStatus> set_absolute_position(double position)=0;
 
 };

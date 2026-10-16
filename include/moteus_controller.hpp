@@ -16,10 +16,10 @@ class MoteusController : public MotorBase {
     MoteusController(std::shared_ptr<moteus::Transport> transport, int motor_id);
     ~MoteusController();
 
-    CurrentStatus position_move_absolute(float position, float max_speed) override;
-    CurrentStatus position_move_relative(float position, float max_speed) override;
-    CurrentStatus stop() override;
-    CurrentStatus set_absolute_position(float position) override;
+    std::optional<CurrentStatus> position_move_absolute(double position, double acceleration_limit, double max_speed) override;
+    std::optional<CurrentStatus> position_move_relative(double position, double acceleration_limit, double max_speed) override;
+    std::optional<CurrentStatus> stop() override;
+    std::optional<CurrentStatus> set_absolute_position(double position) override;
     int id;
 
   private:
