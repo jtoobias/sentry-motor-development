@@ -2,9 +2,13 @@ name: C++ Linting
 
 on:
   push:
-    branches: [ main ]
+    branches:
+    - main
+    - "fix/**"
+    - "feat/**"
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
 
 jobs:
   cpp-lint:
@@ -16,7 +20,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgpiod-dev pkg-config s
+          sudo apt-get install -y libgpiod-dev pkg-config
 
       # Generates the compile_commands.json inside the runner environment
       - name: Configure CMake
