@@ -19,19 +19,15 @@ int main() {
     auto m1 = std::make_unique<MoteusController>(1);
     auto result = m1->enable();
     if (result) std::cout<<"Moteus Pos " << result->position <<std::endl;
-    if (result) std::cout<<"Moteus Pos " << result->position <<std::endl;
     
-
-
     double increment = 0.01;
-    double position = m1->get_position();
 
     while (true) {
-        result = m1->position_move_relative(increment,2.0,1.0);
+        result = m1->position_move_absolute(-1.0,1.0,0.1);
         if (result) {
-        std::cout   << " Fault: " << result->status_code
-                    << " Position: " << result->position
-                    << " Velocity: " << result->speed << "\n";
+        std::cout   << " Fault: " << static_cast<int>(result->status_code)
+                    << " ,Position: ," << result->position
+                    << " ,Velocity: ," << result->speed << "\n";
         }
         if ((result->position >= -0.8 && increment > 0) ||
             (result->position <= -1.0 && increment < 0)){
@@ -45,6 +41,7 @@ int main() {
         val = gpio_pin.read();
         if ((val == false)){
             std::cout<<"Pin is now Low " << val <<std::endl;
+            m1->set_absolute_position(0.0);
             led.write(1);
         } else if (led.read()){
             led.write(0);

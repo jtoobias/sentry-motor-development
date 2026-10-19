@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fmt/core.h>
 #include <optional>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/async.h"
 
 #include "moteus_controller.hpp"
 
@@ -34,6 +37,14 @@ MoteusController::~MoteusController(){
   std::cout << "Moteus Controller Removed"<< std::endl; 
 }
 
+/**
+ * @brief Move to specific position
+ * 
+ * @param position, 1 = 1 revolution
+ * @param acceleration_limit 
+ * @param max_speed 
+ * @return std::optional<CurrentStatus> 
+ */
 std::optional<CurrentStatus> MoteusController::position_move_absolute(double position, double acceleration_limit, double max_speed){
   moteus::PositionMode::Command cmd;
   cmd.position = position;
@@ -44,6 +55,14 @@ std::optional<CurrentStatus> MoteusController::position_move_absolute(double pos
   return handle_moteus_resuls(result);
 }
 
+/**
+ * @brief Move by x amount
+ * 
+ * @param pos_move 
+ * @param acceleration_limit 
+ * @param max_speed 
+ * @return std::optional<CurrentStatus> 
+ */
 std::optional<CurrentStatus> MoteusController::position_move_relative(double pos_move, double acceleration_limit, double max_speed){
   // Get current position and offset by wanted move
   auto current_telemetry = controller_.SetQuery({}); 
@@ -62,16 +81,41 @@ std::optional<CurrentStatus> MoteusController::position_move_relative(double pos
   return handle_moteus_resuls(result);
 }
 
+/**
+ * @brief Disconnects driver from motor - free spin
+ * 
+ * @return std::optional<CurrentStatus> 
+ */
 std::optional<CurrentStatus> MoteusController::stop(void){
   auto result = controller_.SetStop();
   return handle_moteus_resuls(result);
 }
+/**
+ * @brief Shorts motor coils together - faster and stop starting
+ * 
+ * @return std::optional<CurrentStatus> 
+ */
+std::optional<CurrentStatus> MoteusController::brake(void){
+  auto result = controller_.SetBrake();
+  return handle_moteus_resuls(result);
+}
 
+/**
+ * @brief Activate coils and ready for position commands
+ * 
+ * @return std::optional<CurrentStatus> 
+ */
 std::optional<CurrentStatus> MoteusController::enable(void){
   auto result = controller_.SetStop();
   return handle_moteus_resuls(result);
 }
 
+/**
+ * @brief Sets current position to the wanted position.
+ * 
+ * @param position 
+ * @return std::optional<CurrentStatus> 
+ */
 std::optional<CurrentStatus> MoteusController::set_absolute_position(double position){
   moteus::OutputExact::Command command;
   command.position = position; 
@@ -79,7 +123,11 @@ std::optional<CurrentStatus> MoteusController::set_absolute_position(double posi
   return handle_moteus_resuls(result);
 }
 
-
+/**
+ * @brief Get the current motor position
+ * 
+ * @return double 
+ */
 double MoteusController::get_position(void){
   auto current_telemetry = controller_.SetQuery({}); 
   if (!current_telemetry) {
@@ -87,3 +135,9 @@ double MoteusController::get_position(void){
   }
   return (current_telemetry->values.position);
 }
+
+
+// void MoteusController::set_software_position_boundaries(double max_position,double min_position){
+//   max_position_=max_position;
+//   min_position_=min_position;
+// }

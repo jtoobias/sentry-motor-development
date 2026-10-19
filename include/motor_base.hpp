@@ -2,8 +2,8 @@
 //ToDo:
 /* Script to home a motor:
 - I need a base class for a motor that has the following:
-  - The ability to drive to an absolute position at a given speed (deg/s)
-  - The ability to drive to a relative position at a given speed (deg/s)
+  - The ability to drive to an absolute position at a given speed (rev/s)
+  - The ability to drive to a relative position at a given speed (rev/s)
   - The ability to set the current position as zero
 */
 
@@ -19,12 +19,12 @@ class MotorBase{
     MotorBase() = default;
     virtual ~MotorBase() = default;
     /**
-     * @brief Move to an absolute position
+     * @brief Move to an absolute position revolutions.
      * 
      * @param Position (pos) can be negative to determine wanted direction of travel.
      * Clock Wise (CW): +ve pos and Counter-Clock wise (CCW) -ve pos.
      * 
-     * @param Max speed: Is in deg/s (user friendly)
+     * @param Max speed: Is in rev/s (user friendly)
      */
     virtual std::optional<CurrentStatus> position_move_absolute(double position,double acceleration_limit, double max_speed)=0;
 
@@ -34,12 +34,12 @@ class MotorBase{
      * @param Position (pos) can be negative to determine wanted direction of travel.
      * Clock Wise (CW): +ve pos and Counter-Clock wise (CCW) -ve pos.
      * 
-     * @param Max speed: Is in deg/s (user friendly)
+     * @param Max speed: Is in rev/s (user friendly)
      */
     virtual std::optional<CurrentStatus> position_move_relative(double position,double acceleration_limit, double max_speed)=0;
 
     /**
-     * @brief Stop all motion and break if possible
+     * @brief Stop all motion and disconnect
      */
     virtual std::optional<CurrentStatus> stop(void)=0;
 
