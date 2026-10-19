@@ -4,7 +4,11 @@
   - The ability to drive to an absolute position at a given speed (deg/s)
   - The ability to drive to a relative position at a given speed (deg/s)
   - The ability to set the current position as zero
+  - enable function
+
 */
+#pragma once 
+#include <memory>
 #include "moteus.h"
 #include "motor_base.hpp"
 
@@ -13,14 +17,16 @@ using moteus::Controller;
 
 class MoteusController : public MotorBase {
   public:
-    MoteusController(std::shared_ptr<moteus::Transport> transport, int motor_id);
+    MoteusController(int motor_id);
     ~MoteusController();
 
     std::optional<CurrentStatus> position_move_absolute(double position, double acceleration_limit, double max_speed) override;
     std::optional<CurrentStatus> position_move_relative(double position, double acceleration_limit, double max_speed) override;
     std::optional<CurrentStatus> stop() override;
+    std::optional<CurrentStatus> enable() override;
     std::optional<CurrentStatus> set_absolute_position(double position) override;
-    int id;
+    double get_position(void);
+    int id_;
 
   private:
     moteus::Controller controller_;

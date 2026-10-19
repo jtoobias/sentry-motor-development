@@ -39,9 +39,14 @@ class MotorBase{
     virtual std::optional<CurrentStatus> position_move_relative(double position,double acceleration_limit, double max_speed)=0;
 
     /**
-     * @brief Stop all mostion and break if possible
+     * @brief Stop all motion and break if possible
      */
     virtual std::optional<CurrentStatus> stop(void)=0;
+
+    /**
+     * @brief enable the motor so it is ready to move
+     */
+    virtual std::optional<CurrentStatus> enable(void)=0;
 
     /**
      * @brief Set the absolute position object
