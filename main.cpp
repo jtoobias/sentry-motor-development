@@ -16,32 +16,53 @@ int main() {
                     PullMode::None,
                     false);
 
+    GpioPin dir(20,
+                    PinMode::Output,
+                    PullMode::None,
+                    false);
+    GpioPin step(21,
+                    PinMode::Output,
+                    PullMode::None,
+                    false);
+
+    step.write(0);
+    dir.write(0);
+
     auto m1 = std::make_unique<MoteusController>(1);
     auto result = m1->enable();
+
+    m1->set_absolute_position(0.0);
     if (result) std::cout<<"Moteus Pos " << result->position <<std::endl;
     
     double increment = 0.01;
 
     while (true) {
-        result = m1->position_move_absolute(-1.0,1.0,0.1);
+        result = m1->position_move_relative(increment,0.1,0.1);
         if (result) {
         std::cout   << " Fault: " << static_cast<int>(result->status_code)
                     << " ,Position: ," << result->position
                     << " ,Velocity: ," << result->speed << "\n";
         }
-        if ((result->position >= -0.8 && increment > 0) ||
-            (result->position <= -1.0 && increment < 0)){
+        if (step.read()){
+            step.write(0);
+        }else{
+            step.write(1);
+        }
+        if ((result->position >= 1 && increment > 0) ||
+            (result->position <= -1 && increment < 0)){
 
-        std::cout << "Flip" << increment << std::endl;
-        increment *= -1;
-        std::cout << "Flip" << increment << std::endl;
+            std::cout << "Flip" << increment << std::endl;
+            increment *= -1;
+            int current_dir = dir.read();
+            dir.write((1-current_dir));
+            std::cout << "Flip" << increment << std::endl;
         }
 
 
         val = gpio_pin.read();
         if ((val == false)){
             std::cout<<"Pin is now Low " << val <<std::endl;
-            m1->set_absolute_position(0.0);
+            // m1->set_absolute_position(0.0);
             led.write(1);
         } else if (led.read()){
             led.write(0);

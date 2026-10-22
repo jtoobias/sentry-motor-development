@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fmt/core.h>
 #include <optional>
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/async.h"
+// #include "spdlog/spdlog.h"
+// #include "spdlog/sinks/stdout_color_sinks.h"
+// #include "spdlog/async.h"
 
 #include "moteus_controller.hpp"
 
