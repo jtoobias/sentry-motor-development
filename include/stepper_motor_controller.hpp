@@ -54,22 +54,32 @@ class StepperController : public MotorBase {
     int id_;
     GpioPin dir_;
     GpioPin step_;
-    int current_step_pos_{0};
-    int target_step_pos_{0};
     int max_step_pos_ = std::numeric_limits<int>::max();
     int min_step_pos_ = std::numeric_limits<int>::min();
     double max_rev_position_=std::numeric_limits<double>::max();
     double min_rev_position_=std::numeric_limits<double>::min();
     double revs_per_step_{0};
+
+    std::atomic<int>    current_step_pos_{0};
+    std::atomic<int>    target_step_pos_{0};
+    std::atomic<double> max_speed_steps_{0.0};   // steps/s
+    std::atomic<double> max_accel_steps_{0.0};   // steps/s²
+    double velocity_steps_{0.0};                 // steps/s, controller thread only
+    double fractional_steps_{0.0};               // earned but not yet emitted steps
     static constexpr std::chrono::milliseconds thread_step_interval_ms_{1};
+    static constexpr double tick_s_ = std::chrono::duration<double>(thread_step_interval_ms_).count();
+
+int plan_tick(double dt);                    // returns signed steps to emit
 
     void step_controller(void);
     void start_controller_thread(void);
     void stop_controller_thread(void);
     void set_direction(int position_error);
+    void trigger_step(void);
 
     double target_velocity_{0.0}; // revs/second
     double current_velocity_{0.0}; // revs/second
+    double max_acceleration_{0.0};
 
     std::atomic<StatusCodes> status_{StatusCodes::UNKNOWN};
 
