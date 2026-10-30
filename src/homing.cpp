@@ -23,40 +23,42 @@ HomingState Homing::get_homing_state(void){
   return current_state_.load();
 }
 
-HomingState Homing::execute_homing(void){
-  bool check_outcome = false;
-  
-  auto start_time = std::chrono::steady_clock::now();
 
-  while (current_state_.load() != HomingState::HOMED){
-    switch (current_state_.load()){
-      case HomingState::UNKNOWN:
-        start_hunting();
-        break;
-
-      case HomingState::HUNTING:
-        home_check_decision();
-        break;
-
-      case HomingState::TRIGGERED:
-        start_backing_off();
-        break;
-        
-      case HomingState::BACKING_OFF:
-        check_to_start_rehoming();
-        break;
-
-      case HomingState::HOMED:
-        motor_->set_absolute_position(0.0);
+HomingState Homing::execute_homing(void) {
+    if (current_state_.load() == HomingState::HOMED) {
         return HomingState::HOMED;
-        break;
     }
 
-    if (std::chrono::steady_clock::now() - start_time > HOMING_TIMEOUT){
-      current_state_.store(HomingState::ERROR_TIMEOUT);
-      return HomingState::ERROR_TIMEOUT;
+    switch (current_state_.load()) {
+        case HomingState::UNKNOWN:
+            start_hunting();
+            break;
+
+        case HomingState::HUNTING:
+            home_check_decision();
+            break;
+
+        case HomingState::TRIGGERED:
+            start_backing_off();
+            break;
+            
+        case HomingState::BACKING_OFF:
+            check_to_start_rehoming();
+            break;
+
+        case HomingState::HOMED:
+            motor_->set_absolute_position(0.0);
+            break;
+            
+        default:
+            break;
     }
-  }
+
+    if (std::chrono::steady_clock::now() - start_time_ >= HOMING_TIMEOUT) {
+        current_state_.store(HomingState::ERROR_TIMEOUT);
+        return HomingState::ERROR_TIMEOUT;
+    }
+    return current_state_.load();
 }
 
 void Homing::start_hunting(void){
@@ -64,6 +66,7 @@ void Homing::start_hunting(void){
   direction_ = -direction_;
   current_state_.store(HomingState::HUNTING);
   target_state_ = HomingState::TRIGGERED;
+  start_time_ = std::chrono::steady_clock::now();
 }
 
 void Homing::check_to_start_rehoming(void){

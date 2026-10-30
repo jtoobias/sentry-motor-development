@@ -59,10 +59,12 @@ class Homing{
     static constexpr double FAST_SPEED = 1.0; //rev/s
     static constexpr double ACCEL_LIMIT = 10.0; // rev/s^2
     static constexpr std::chrono::seconds HOMING_TIMEOUT = std::chrono::seconds(60);
+    std::chrono::steady_clock::time_point start_time_; 
 
     std::shared_ptr<MotorBase> motor_;
     MoveDir direction_ = MoveDir::CW;
     HomingState target_state_ = HomingState::HUNTING;
+
 
     bool execute_move(MoveDir direction ,MoveSpeed speed);
     void position_control(MoveSpeed speed);
