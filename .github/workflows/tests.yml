@@ -1,4 +1,4 @@
-name: Continuous Integration Testing Pipeline
+name: C++ Build and Test
 
 on:
   push:
