@@ -1,0 +1,55 @@
+name: Continuous Integration Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+
+    steps:
+    # Step 1: Download your MAIN repository into a subfolder named 'moteus_test'
+    - name: Checkout Main Project Repo
+      uses: actions/checkout@v4
+      with:
+        path: moteus_test
+
+    # Step 2: Download your DEPENDENCY repository into a subfolder named 'gpio_wrapper'
+    - name: Checkout GPIO Wrapper Dependency Repo
+      uses: actions/checkout@v4
+      with:
+        # Replace this with your actual GitHub username or Organization name
+        repository: your_github_username/gpio_wrapper 
+        path: gpio_wrapper
+        # Note: If gpio_wrapper is a PRIVATE repository, you must supply a secret Personal Access Token (PAT):
+        # token: ${{ secrets.MY_GITHUB_PAT }} 
+
+    # Step 3: Set up the required standard physical/hardware system package libraries
+    - name: Install Industrial Linux OS Hardware Drivers
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libgpiod-dev \
+          libgpiodcxx-dev \
+          libgtest-dev
+
+    # Step 4: Configure CMake standing explicitly inside your main repository directory
+    - name: Run CMake Configuration
+      working-directory: ./moteus_test
+      run: cmake -B build -S . -DBUILD_TESTING=ON
+
+    # Step 5: Compile the whole module core using parallel CPU threading
+    - name: Build Core Library and Test Binary Execution Targets
+      working-directory: ./moteus_test
+      run: cmake --build build --parallel $(nproc)
+
+    # Step 6: Trigger CTest execution to report your telemetry pass metrics
+    - name: Execute Asynchronous State Machine Test Suite
+      working-directory: ./moteus_test/build
+      run: ctest --output-on-failure

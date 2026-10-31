@@ -12,10 +12,14 @@
 #include <thread>
 #include "homing.hpp"
 
-Homing::Homing(std::shared_ptr<MotorBase> motor,std::function<bool()> home_check,MoveDir init_dir):
+Homing::Homing(std::shared_ptr<MotorBase> motor,
+  std::function<bool()> home_check,
+  MoveDir init_dir,
+  std::function<std::chrono::steady_clock::time_point()> clock):
   motor_(std::move(motor)),
   home_check_(std::move(home_check)),
-  direction_(init_dir){
+  direction_(init_dir),
+  get_time_(std::move(clock)){
 }
 
 
@@ -54,7 +58,7 @@ HomingState Homing::execute_homing(void) {
             break;
     }
 
-    if (std::chrono::steady_clock::now() - start_time_ >= HOMING_TIMEOUT) {
+    if (get_time_() - start_time_ >= HOMING_TIMEOUT) {
         current_state_.store(HomingState::ERROR_TIMEOUT);
         return HomingState::ERROR_TIMEOUT;
     }
@@ -62,11 +66,16 @@ HomingState Homing::execute_homing(void) {
 }
 
 void Homing::start_hunting(void){
-  position_control(MoveSpeed::FAST);
-  direction_ = -direction_;
-  current_state_.store(HomingState::HUNTING);
-  target_state_ = HomingState::TRIGGERED;
   start_time_ = std::chrono::steady_clock::now();
+  if (!home_check_()){
+    position_control(MoveSpeed::FAST);
+    current_state_.store(HomingState::HUNTING);
+    target_state_ = HomingState::TRIGGERED;
+  } else {
+    position_control(MoveSpeed::STOP);
+    current_state_.store(HomingState::TRIGGERED);
+    target_state_ = HomingState::TRIGGERED;
+  }
 }
 
 void Homing::check_to_start_rehoming(void){
@@ -88,7 +97,6 @@ void Homing::start_backing_off(void){
 void Homing::home_check_decision(void){
   if (home_check_()){
     position_control(MoveSpeed::STOP);
-
     if (target_state_ == HomingState::HOMED){ 
       current_state_.store(HomingState::HOMED);
 
@@ -98,13 +106,14 @@ void Homing::home_check_decision(void){
   }
 }
 
-
-
 void Homing::position_control(MoveSpeed speed){
-  double target_position = 1.1*static_cast<int>(direction_);
+    // Move the motor at least one revolution
+  double target_position = HOMING_ROTATION*static_cast<int>(direction_);
   if (speed == MoveSpeed::SLOW){
     motor_->position_move_relative(target_position,ACCEL_LIMIT,SLOW_SPEED);
-  } else {
+  } else if (speed == MoveSpeed::FAST){
     motor_->position_move_relative(target_position,ACCEL_LIMIT,FAST_SPEED);
+  } else if (speed == MoveSpeed::STOP){
+    motor_->stop();
   }
 }

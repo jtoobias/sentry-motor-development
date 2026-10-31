@@ -1,11 +1,16 @@
+/**
+ * @file motor_base.hpp
+ * @author Jonathan Tobias
+ * @brief 
+ * @version 0.1
+ * @date 2026-10-30
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
+#pragma once 
 #include <limits>
-//ToDo:
-/* Script to home a motor:
-- I need a base class for a motor that has the following:
-  - The ability to drive to an absolute position at a given speed (rev/s)
-  - The ability to drive to a relative position at a given speed (rev/s)
-  - The ability to set the current position as zero
-*/
+#include <optional>
 
 struct CurrentStatus{
   double position = std::numeric_limits<double>::quiet_NaN();
