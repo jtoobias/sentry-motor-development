@@ -38,7 +38,6 @@ jobs:
           cmake \
           pkg-config \
           libgpiod-dev \
-          libgpiodcxx-dev \
           libgtest-dev
 
     # Step 4: Configure CMake standing explicitly inside your main repository directory
