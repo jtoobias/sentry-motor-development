@@ -93,7 +93,7 @@ std::optional<CurrentStatus> StepperController::set_absolute_position(double pos
   CurrentStatus status;
   current_step_pos_ = position;
   status.position = position;
-  status.speed = current_velocity_.load();
+  // status.speed = current_velocity_.load();
   status.status_code = static_cast<int>(status_.load());
   return status;
 }
@@ -162,7 +162,7 @@ void StepperController::step_controller(void){
 
       difference = target_step_pos_-current_step_pos_;
       if (difference == 0) continue;
-      motion_controller()
+      // motion_controller()
     }
         
     // Timer that takes into account work time

@@ -20,8 +20,8 @@
 
 
 enum class Direction{
-  CW = 0,
-  CCW = 1,
+  CW = 1,
+  CCW = -1,
 };
 
 enum class StatusCodes{
