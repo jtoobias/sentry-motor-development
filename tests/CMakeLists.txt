@@ -11,8 +11,8 @@ target_include_directories(homing_tests PRIVATE
 
 target_link_libraries(homing_tests PRIVATE 
     motor_core        
-    GTest::gtest      
-    GTest::gtest_main 
+    gtest      
+    gtest_main 
 )
 
 add_test(NAME HomingTests COMMAND homing_tests)
