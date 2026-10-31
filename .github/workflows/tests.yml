@@ -2,9 +2,13 @@ name: Continuous Integration Testing Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+    - main
+    - "fix/**"
+    - "feat/**"
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
 
 jobs:
   build-and-test:
