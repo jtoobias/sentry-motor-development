@@ -25,11 +25,9 @@ jobs:
     - name: Checkout GPIO Wrapper Dependency Repo
       uses: actions/checkout@v4
       with:
-        # Replace this with your actual GitHub username or Organization name
-        repository: your_github_username/gpio_wrapper 
+        # GPIO wrapper from repo
+        repository: https://github.com/jtoobias/gpiod_wrapper 
         path: gpio_wrapper
-        # Note: If gpio_wrapper is a PRIVATE repository, you must supply a secret Personal Access Token (PAT):
-        # token: ${{ secrets.MY_GITHUB_PAT }} 
 
     # Step 3: Set up the required standard physical/hardware system package libraries
     - name: Install Industrial Linux OS Hardware Drivers
