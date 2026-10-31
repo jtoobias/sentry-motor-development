@@ -26,8 +26,8 @@ jobs:
       uses: actions/checkout@v4
       with:
         # GPIO wrapper from repo
-        repository: https://github.com/jtoobias/gpiod_wrapper 
-        path: gpio_wrapper
+        repository: 'jtoobias/gpiod_wrapper' # 
+        path: 'gpio_wrapper'
 
     # Step 3: Set up the required standard physical/hardware system package libraries
     - name: Install Industrial Linux OS Hardware Drivers
