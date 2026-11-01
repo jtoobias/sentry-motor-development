@@ -1,20 +1,23 @@
 #include <iostream>
 #include <fmt/core.h>
 #include <optional>
-// #include "spdlog/spdlog.h"
-// #include "spdlog/sinks/stdout_color_sinks.h"
-// #include "spdlog/async.h"
-
 #include "moteus_controller.hpp"
 
+using std::lock_guard;
+using std::mutex;
 
-std::optional<CurrentStatus> handle_moteus_resuls(auto &result){
-  if (!result) return std::nullopt;
-  CurrentStatus status;
-  status.position = result->values.position;
-  status.status_code = result->values.fault;
-  status.speed = result->values.velocity;
-  return status;
+namespace moteus = mjbots::moteus;
+
+std::optional<CurrentStatus> MoteusController::handle_moteus_results(auto &result){
+  if (!result) {
+    // Make this a one off log
+    std::cerr << fmt::format("Moteus Controller {} communication error",id) << std::endl;
+    return std::nullopt;
+  }
+  status_.position = result->values.position;
+  status_.status_code = result->values.fault;
+  status_.speed = result->values.velocity;
+  return status_;
 }
 
 /**
@@ -28,13 +31,16 @@ MoteusController::MoteusController(int motor_id):
       options.id = motor_id;
       return options;
     }()),
-    id_(motor_id)
+    id(motor_id)
 {
-  std::cout << fmt::format("Moteus Controller {} Created",id_) << std::endl;
+  update_thread_ = std::thread(&MoteusController::motor_updater, this);
+  std::cout << fmt::format("Moteus Controller {} Created",id) << std::endl;
 }
 
 MoteusController::~MoteusController(){
-  std::cout << "Moteus Controller Removed"<< std::endl; 
+  update_thread_keep_running_.store(false);
+  update_thread_.join();
+  std::cout << fmt::format("Moteus Controller {} Removed", id) << std::endl;
 }
 
 /**
@@ -52,7 +58,7 @@ std::optional<CurrentStatus> MoteusController::position_move_absolute(double pos
   cmd.accel_limit = acceleration_limit;
   cmd.velocity_limit = max_speed;
   auto result = controller_.SetPosition(cmd);
-  return handle_moteus_resuls(result);
+  return handle_moteus_results(result);
 }
 
 /**
@@ -78,7 +84,7 @@ std::optional<CurrentStatus> MoteusController::position_move_relative(double pos
 
   auto result = controller_.SetPosition(cmd);
   
-  return handle_moteus_resuls(result);
+  return handle_moteus_results(result);
 }
 
 /**
@@ -88,7 +94,7 @@ std::optional<CurrentStatus> MoteusController::position_move_relative(double pos
  */
 std::optional<CurrentStatus> MoteusController::stop(void){
   auto result = controller_.SetStop();
-  return handle_moteus_resuls(result);
+  return handle_moteus_results(result);
 }
 /**
  * @brief Shorts motor coils together - faster and stop starting
@@ -97,7 +103,7 @@ std::optional<CurrentStatus> MoteusController::stop(void){
  */
 std::optional<CurrentStatus> MoteusController::brake(void){
   auto result = controller_.SetBrake();
-  return handle_moteus_resuls(result);
+  return handle_moteus_results(result);
 }
 
 /**
@@ -107,7 +113,7 @@ std::optional<CurrentStatus> MoteusController::brake(void){
  */
 std::optional<CurrentStatus> MoteusController::enable(void){
   auto result = controller_.SetStop();
-  return handle_moteus_resuls(result);
+  return handle_moteus_results(result);
 }
 
 /**
@@ -120,7 +126,7 @@ std::optional<CurrentStatus> MoteusController::set_absolute_position(double posi
   moteus::OutputExact::Command command;
   command.position = position; 
   auto result = controller_.SetOutputExact(command);
-  return handle_moteus_resuls(result);
+  return handle_moteus_results(result);
 }
 
 /**
@@ -129,15 +135,75 @@ std::optional<CurrentStatus> MoteusController::set_absolute_position(double posi
  * @return double 
  */
 double MoteusController::get_position(void){
-  auto current_telemetry = controller_.SetQuery({}); 
-  if (!current_telemetry) {
-    throw std::runtime_error(fmt::format("Motor Position: Unknown - due to communication failure {0}",id_));
+  // Start query
+  request_.target_state = DriverState::QUERY;
+  update_tick_complete.store(true);
+  instant_update_.notify_all();
+
+  // Wait for response
+  std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::steady_clock::now();
+  while (!update_tick_complete.load()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    auto now = std::chrono::steady_clock::now();
+    if ((now - start_time) > std::chrono::milliseconds(100)) {
+      std::cerr << fmt::format("Moteus Controller {} get_position timeout",id) << std::endl;
+      return std::numeric_limits<double>::quiet_NaN();
+    }
   }
-  return (current_telemetry->values.position);
+  return status_.position;
 }
 
 
-// void MoteusController::set_software_position_boundaries(double max_position,double min_position){
-//   max_position_=max_position;
-//   min_position_=min_position;
-// }
+void MoteusController::motor_updater(void){
+  moteus::Optional<moteus::Controller::Result> result;
+  DriverState last_state{DriverState::UNKNOWN};
+  while (update_thread_keep_running_.load()) {
+    {
+      std::unique_lock<mutex> lock(update_mutex_);
+
+      switch (request_.target_state){ 
+        case DriverState::ENABLED:
+        case DriverState::STOPPED:
+          result = controller_.SetStop();
+          handle_moteus_results(result);
+          request_.target_position = status_.position;
+          last_state = request_.target_state;
+          break;
+        case DriverState::RUNNING:
+          update_position();
+          break;
+        case DriverState::BRAKED:
+          result = controller_.SetBrake();
+          handle_moteus_results(result);
+          request_.target_position = status_.position;
+          last_state = request_.target_state;
+          break;
+        case DriverState::QUERY:
+          result = controller_.SetQuery({});
+          handle_moteus_results(result);
+          // Go back to the last active state
+          request_.target_state = last_state;
+          break;
+        case DriverState::UNKNOWN:
+          break;
+        default:
+        
+          break;
+      }
+      update_tick_complete.store(true);
+      instant_update_.wait_for(lock, std::chrono::milliseconds(update_rate_.count()));
+    }
+  }
+}
+
+std::optional<CurrentStatus> MoteusController::update_position(void){
+  CurrentStatus status;
+  mjbots::moteus::PositionMode::Command cmd;
+  cmd.position = request_.target_position; 
+  cmd.velocity = 0.0;
+  cmd.velocity_limit = request_.max_velocity;
+  cmd.accel_limit = request_.max_acceleration;
+
+  auto result = controller_.SetPosition(cmd);
+  return handle_moteus_results(result);
+}
