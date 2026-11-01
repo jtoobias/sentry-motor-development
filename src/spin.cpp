@@ -1,6 +1,7 @@
 #include <iostream>
 #include <limits>
 #include <unistd.h>
+#include <chrono>
 #include "moteus.h"
 
 namespace moteus = mjbots::moteus;
@@ -27,12 +28,16 @@ int main(int argc, char** argv) {
     }
 
   controller.SetStop();
-  double increment = 0.001;
+  double increment = 0.01;
+  command.position += increment;
+  const auto maybe_result = controller.SetPosition(command);
+  // auto start_time = std::chrono
   while (true) {
-    command.position += increment;
+
+    const auto query = controller.SetQuery();
     const auto maybe_result = controller.SetPosition(command);
-    if (maybe_result) {
-      const auto& v = maybe_result->values;
+    if (query) {
+      const auto& v = query->values;
       std::cout << "Mode: " << static_cast<int>(v.mode)
                 << " Fault: " << v.fault
                 << " Position: " << v.position
@@ -46,6 +51,7 @@ int main(int argc, char** argv) {
       increment *= -1;
       std::cout << "Flip" << increment << std::endl;
     }
+    // test keepalive
   }
   return 0;
 }

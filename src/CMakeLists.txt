@@ -1,7 +1,7 @@
 # 1. Bundle your controller logic into a reusable local library target
 add_library(motor_core STATIC
   moteus_controller.cpp
-  homing.cpp 
+  homing.cpp
 )
 
 # 2. Apply include paths specifically to your core library logic
@@ -32,3 +32,7 @@ target_link_libraries(main_app PRIVATE motor_core)
 # Spin utility executable
 add_executable(spin spin.cpp)
 target_link_libraries(spin PRIVATE motor_core)
+#Homing example
+add_executable(home_example homing_example.cpp)
+target_include_directories(home_example PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+target_link_libraries(home_example PRIVATE motor_core)
