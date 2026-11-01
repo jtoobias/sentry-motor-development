@@ -22,11 +22,9 @@ using moteus::Controller;
 
 enum class DriverState {
   UNKNOWN = 0,
-  ENABLED = 1,
-  RUNNING = 2,
-  STOPPED = 3,
-  BRAKED = 4,
-  QUERY = 5,
+  RUNNING = 1,
+  STOPPED = 2,
+  BRAKED = 3,
   ERROR = 10
 };
 
@@ -49,7 +47,8 @@ class MoteusController : public MotorBase {
     std::optional<CurrentStatus> enable() override;
     std::optional<CurrentStatus> set_absolute_position(double position) override;
     std::optional<CurrentStatus> brake(void);
-    double get_position(void);
+    std::optional<double> get_position(void);
+    CurrentStatus get_current_status(void);
     // void set_software_position_boundaries(double max_position,double min_position);
 
     int id;
@@ -57,7 +56,7 @@ class MoteusController : public MotorBase {
   private:
     std::optional<CurrentStatus> handle_moteus_results(auto &result);
     std::optional<CurrentStatus> update_position(void);
-    void motor_updater(void);
+    void keepalive(void);
     CurrentStatus status_;
     moteus::Controller controller_;
     Request request_;
@@ -65,6 +64,8 @@ class MoteusController : public MotorBase {
     double min_position_=std::numeric_limits<double>::min();
 
     
+    static constexpr int ErrorPositionTimeout = 11;
+
     static constexpr std::chrono::milliseconds update_rate_{25}; // must be less than 50ms
     std::mutex update_mutex_;
     std::thread update_thread_;
