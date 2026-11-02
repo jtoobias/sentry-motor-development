@@ -46,7 +46,6 @@ class MoteusController : public MotorBase {
     std::optional<CurrentStatus> stop() override;
     std::optional<CurrentStatus> enable() override;
     std::optional<CurrentStatus> set_absolute_position(double position) override;
-    std::optional<CurrentStatus> brake(void);
     std::optional<double> get_position(void);
     CurrentStatus get_current_status(void);
     // void set_software_position_boundaries(double max_position,double min_position);

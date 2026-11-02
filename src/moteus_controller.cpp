@@ -126,17 +126,6 @@ std::optional<CurrentStatus> MoteusController::stop(void){
   lock_guard<mutex> lock(update_mutex_);
   // State first, so the updater never resends a position after this
   request_.target_state = DriverState::STOPPED;
-  auto result = controller_.SetStop();
-  return handle_moteus_results(result);
-}
-/**
- * @brief Shorts motor coils together - faster and stop starting
- * 
- * @return std::optional<CurrentStatus> 
- */
-std::optional<CurrentStatus> MoteusController::brake(void){
-  lock_guard<mutex> lock(update_mutex_);
-  request_.target_state = DriverState::BRAKED;
   auto result = controller_.SetBrake();
   return handle_moteus_results(result);
 }

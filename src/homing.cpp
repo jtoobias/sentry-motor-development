@@ -11,6 +11,7 @@
 #include <chrono>
 #include <thread>
 #include "homing.hpp"
+#include <iostream>
 
 Homing::Homing(std::shared_ptr<MotorBase> motor,
   std::function<bool()> home_check,
@@ -21,7 +22,6 @@ Homing::Homing(std::shared_ptr<MotorBase> motor,
   direction_(init_dir),
   get_time_(std::move(clock)){
 }
-
 
 HomingState Homing::get_homing_state(void){
   return current_state_.load();
@@ -67,19 +67,22 @@ HomingState Homing::execute_homing(void) {
 
 void Homing::start_hunting(void){
   start_time_ = std::chrono::steady_clock::now();
-  if (!home_check_()){
-    position_control(MoveSpeed::FAST);
-    current_state_.store(HomingState::HUNTING);
-    target_state_ = HomingState::TRIGGERED;
-  } else {
+  if (home_check_()){
+    std::cout << "Homing: Home switch triggered -> backoff.\n";
     position_control(MoveSpeed::STOP);
     current_state_.store(HomingState::TRIGGERED);
+    target_state_ = HomingState::TRIGGERED;
+  } else {
+    std::cout << "Homing: Home switch not triggered.\n";
+    position_control(MoveSpeed::FAST);
+    current_state_.store(HomingState::HUNTING);
     target_state_ = HomingState::TRIGGERED;
   }
 }
 
 void Homing::check_to_start_rehoming(void){
   if (!home_check_()){
+    std::cout << "Homing: Start Rehoming.\n";
     current_state_.store(HomingState::HUNTING);
     target_state_ = HomingState::HOMED;
     direction_ = -direction_;
@@ -88,11 +91,12 @@ void Homing::check_to_start_rehoming(void){
 }
 
 void Homing::start_backing_off(void){
+
+  std::cout << "Homing: Start Backing Off.\n";
   direction_ = -direction_;
   position_control(MoveSpeed::SLOW);
   current_state_.store(HomingState::BACKING_OFF);
 }
-
 
 void Homing::home_check_decision(void){
   if (home_check_()){
@@ -109,6 +113,8 @@ void Homing::home_check_decision(void){
 void Homing::position_control(MoveSpeed speed){
     // Move the motor at least one revolution
   double target_position = HOMING_ROTATION*static_cast<int>(direction_);
+
+  std::cout << "Homing: Target Position: " << target_position << " Current state: " << static_cast<int>(current_state_.load()) <<  "\n";
   if (speed == MoveSpeed::SLOW){
     motor_->position_move_relative(target_position,ACCEL_LIMIT,SLOW_SPEED);
   } else if (speed == MoveSpeed::FAST){

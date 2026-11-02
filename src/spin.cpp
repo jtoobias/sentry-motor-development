@@ -2,50 +2,30 @@
 #include <limits>
 #include <unistd.h>
 #include <chrono>
-#include "moteus.h"
+#include "moteus_controller.hpp"
 
 namespace moteus = mjbots::moteus;
 
 int main(int argc, char** argv) {
-  moteus::Controller::DefaultArgProcess(argc, argv);
 
-  moteus::Controller controller([]() {
-    moteus::Controller::Options options;
-    options.id = 1;
-    return options;
-  }());
+  auto m1 = std::make_unique<MoteusController>(1);
 
-  moteus::PositionMode::Command command;
+  m1->set_absolute_position(0.0);
+  auto result = m1->enable();
 
-  const auto query = controller.SetQuery();
-    if (query) {
-        // Access values inside the returned structure
-        const auto& v = query->values;
-        command.position = v.position;
-        std::cout << "Current Motor Position: " << v.position << "\n";
-    } else {
-        std::cerr << "Failed to communicate with motor.\n";
-    }
-
-  controller.SetStop();
   double increment = 0.01;
-  command.position += increment;
-  const auto maybe_result = controller.SetPosition(command);
-  // auto start_time = std::chrono
+  double position = 0.0;
   while (true) {
+    position += increment;
+    m1->position_move_relative(position,1.0,0.5);
 
-    const auto query = controller.SetQuery();
-    const auto maybe_result = controller.SetPosition(command);
-    if (query) {
-      const auto& v = query->values;
-      std::cout << "Mode: " << static_cast<int>(v.mode)
-                << " Fault: " << v.fault
-                << " Position: " << v.position
-                << " Velocity: " << v.velocity << "\n";
-    }
+    auto status = m1->get_current_status();
+    std::cout   << " Fault: " << static_cast<int>(status.status_code)
+                << " ,Position: ," << status.position
+                << " ,Velocity: ," << status.speed << "\n";
     ::usleep(10000);
-    if ((command.position >= 1.0 && increment > 0) ||
-        (command.position <= -1.0 && increment < 0)){
+    if ((status.position >= 1.0 && increment > 0) ||
+        (status.position <= -1.0 && increment < 0)){
 
       std::cout << "Flip" << increment << std::endl;
       increment *= -1;

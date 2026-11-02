@@ -43,7 +43,6 @@ FetchContent_MakeAvailable(googletest)
 option(BUILD_TESTING "Build the test suite" ON)
 if(BUILD_TESTING)
     enable_testing()
-    # REMOVED: find_package(GTest REQUIRED) is gone.
     # Targets 'gtest' and 'gtest_main' are now natively available!
     add_subdirectory(tests) # Directs control to your tests/ folder
 endif()

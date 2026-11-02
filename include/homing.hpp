@@ -68,8 +68,8 @@ class Homing{
 
   private:
     static constexpr double SLOW_SPEED = 1.0; //rev/s
-    static constexpr double FAST_SPEED = 2.0; //rev/s
-    static constexpr double ACCEL_LIMIT = 10.0; // rev/s^2
+    static constexpr double FAST_SPEED = 4.0; //rev/s
+    static constexpr double ACCEL_LIMIT = 2.0; // rev/s^2
     static constexpr double HOMING_ROTATION = 1.1; // revs
     static constexpr std::chrono::seconds HOMING_TIMEOUT = std::chrono::seconds(60);
     std::chrono::steady_clock::time_point start_time_; 

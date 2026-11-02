@@ -62,7 +62,7 @@ int main() {
     // 3. Build your sensor function adapter mapping
     // This connects your physical GpioPin reading method straight to the state engine slot
     auto hardware_switch_checker = [&gpio_pin]() {
-        return gpio_pin.read(); 
+        return !gpio_pin.read(); 
     };
 
     Homing homing_sequence(real_motor, hardware_switch_checker, MoveDir::CW);
@@ -80,6 +80,8 @@ int main() {
 
         if (current_state == HomingState::HOMED) {
             std::cout << "SUCCESS: Joint Homing Routine verified physically! Hardware zeroed.\n";
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             break;
         } 
         else if (current_state == HomingState::ERROR_TIMEOUT) {
