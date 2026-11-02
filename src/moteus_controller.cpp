@@ -164,6 +164,7 @@ std::optional<CurrentStatus> MoteusController::set_absolute_position(double posi
   lock_guard<mutex> lock(update_mutex_);
   auto result = controller_.SetOutputExact(command);
   auto status = handle_moteus_results(result);
+  request_.target_position = position;
   // The held target is in the old frame, so hold at the new origin instead of stopping
   if (status && request_.target_state == DriverState::RUNNING) {
     request_.target_position = position;

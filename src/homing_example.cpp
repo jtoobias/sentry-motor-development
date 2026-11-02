@@ -29,8 +29,7 @@ void run_asynchronous_homing(Homing& sequence) {
     HomingState active_state = HomingState::UNKNOWN;
     
     // Continue ticking until a definitive terminal state is reached
-    while (active_state != HomingState::HOMED && active_state != HomingState::ERROR_TIMEOUT) {
-        
+    while (sequence.check_homing_outcome() == HomingOutcome::RUNNING) {
         // Execute exactly one single state-machine step calculation
         active_state = sequence.execute_homing();
         
@@ -77,19 +76,37 @@ int main() {
     while (true) {
         HomingState current_state = homing_sequence.get_homing_state();
         std::cout << "[Monitor Loop] Current State: " << static_cast<int>(current_state) << "\n";
-
-        if (current_state == HomingState::HOMED) {
+        HomingOutcome homing_outcome = homing_sequence.check_homing_outcome();
+        if (homing_outcome == HomingOutcome::SUCCESS) {
             std::cout << "SUCCESS: Joint Homing Routine verified physically! Hardware zeroed.\n";
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             break;
         } 
-        else if (current_state == HomingState::ERROR_TIMEOUT) {
+        else if (homing_outcome == HomingOutcome::FAILURE) {
             std::cerr << "FATAL ERROR: Homing execution dropped due to Watchdog Safety Timeout!\n";
             break;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    // Test absolute position move
+    int count = 0;
+    real_motor->position_move_absolute(0.25, 0.1, 2.0);
+    while (count < 5) {
+        auto status = real_motor->get_current_status();
+        std::cout   << " Fault: " << static_cast<int>(status.status_code)
+                    << " ,Position: ," << status.position
+                    << " ,Velocity: ," << status.speed << "\n";
+
+        if (status.position >= 0.25) {
+            std::cout << "Reached 0.25 revs, moving back to 0.0\n";
+            real_motor->position_move_absolute(-0.25, 0.1, 2.0);
+        } else if (status.position <= -0.25) {
+            std::cout << "Reached -0.25 revs, moving back to 0.0\n";
+            real_motor->position_move_absolute(0.25, 0.1, 2.0);
+            count ++;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     run_application.store(false); // Shutdown the LED loop flag

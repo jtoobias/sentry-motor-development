@@ -29,33 +29,38 @@ HomingState Homing::get_homing_state(void){
 
 
 HomingState Homing::execute_homing(void) {
-    if (current_state_.load() == HomingState::HOMED) {
-        return HomingState::HOMED;
-    }
 
     switch (current_state_.load()) {
-        case HomingState::UNKNOWN:
-            start_hunting();
-            break;
+      case HomingState::UNKNOWN:
+        start_hunting();
+        break;
 
-        case HomingState::HUNTING:
-            home_check_decision();
-            break;
+      case HomingState::HUNTING:
+        home_check_decision();
+        break;
 
-        case HomingState::TRIGGERED:
-            start_backing_off();
-            break;
-            
-        case HomingState::BACKING_OFF:
-            check_to_start_rehoming();
-            break;
+      case HomingState::TRIGGERED:
+        start_backing_off();
+        break;
+          
+      case HomingState::BACKING_OFF:
+        check_to_start_rehoming();
+        break;
 
-        case HomingState::HOMED:
-            motor_->set_absolute_position(0.0);
-            break;
-            
-        default:
-            break;
+      case HomingState::HOMED:
+        std::cout << "Homing: Set Absolute Position: " << std::endl;
+        motor_->set_absolute_position(0.0);
+        current_state_.store(HomingState::FINISHED);
+        target_state_ = HomingState::FINISHED;
+        break;
+
+      case HomingState::FINISHED:
+        std::cout << "Homing: Finished " << std::endl;
+        break;
+
+      default:
+        std::cerr << "Homing: Unknown state encountered: " << static_cast<int>(current_state_.load()) << std::endl;
+        break;
     }
 
     if (get_time_() - start_time_ >= HOMING_TIMEOUT) {
@@ -122,4 +127,11 @@ void Homing::position_control(MoveSpeed speed){
   } else if (speed == MoveSpeed::STOP){
     motor_->stop();
   }
+}
+
+
+HomingOutcome Homing::check_homing_outcome(void){
+  if (current_state_.load() == HomingState::FINISHED ) return HomingOutcome::SUCCESS;
+  else if (current_state_.load() == HomingState::ERROR_TIMEOUT) return HomingOutcome::FAILURE;
+  else return HomingOutcome::RUNNING;
 }

@@ -17,12 +17,19 @@
 #include <chrono>
 #include "motor_base.hpp"
 
+enum class HomingOutcome{
+  RUNNING = 1,
+  SUCCESS = 2,
+  FAILURE = 3
+};
+
 enum class HomingState{
   UNKNOWN = 0,
   HUNTING = 1,
   TRIGGERED = 2,
   BACKING_OFF = 3,
   HOMED = 4,
+  FINISHED = 5,
   ERROR_TIMEOUT = 10
 };
 
@@ -60,6 +67,7 @@ class Homing{
     ~Homing()=default;
     HomingState get_homing_state(void);
     HomingState execute_homing(void);
+    HomingOutcome check_homing_outcome(void);
 
     MoveDir get_direction() const { return direction_; }
     double get_slow_speed() const { return SLOW_SPEED; }
