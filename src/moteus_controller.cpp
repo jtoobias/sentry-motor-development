@@ -195,7 +195,7 @@ void MoteusController::keepalive(void){
     std::unique_lock<mutex> lock(update_mutex_);
     if (request_.target_state == DriverState::RUNNING) {
       update_position();
-    }else if (request_.target_state == DriverState::BRAKED) {
+    }else if (request_.target_state == DriverState::STOPPED) {
       // check to see if this works
       controller_.SetBrake();
     }

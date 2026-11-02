@@ -24,7 +24,6 @@ enum class DriverState {
   UNKNOWN = 0,
   RUNNING = 1,
   STOPPED = 2,
-  BRAKED = 3,
   ERROR = 10
 };
 

@@ -57,9 +57,9 @@ class StepperController : public MotorBase {
     int current_step_pos_{0};
     int target_step_pos_{0};
     int max_step_pos_ = std::numeric_limits<int>::max();
-    int min_step_pos_ = std::numeric_limits<int>::min();
+    int min_step_pos_ = std::numeric_limits<int>::lowest();
     double max_rev_position_=std::numeric_limits<double>::max();
-    double min_rev_position_=std::numeric_limits<double>::min();
+    double min_rev_position_=std::numeric_limits<double>::lowest();
     double revs_per_step_{0};
     static constexpr std::chrono::milliseconds thread_step_interval_ms_{1};
 
