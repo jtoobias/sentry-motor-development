@@ -55,10 +55,10 @@ classDiagram
     class MoteusController {
         +get_position()
         +get_current_status()
-        -keepalive thread
+        -keepalive()
     }
     class StepperController {
-        <<in progress>>
+        <<WIP>>
     }
     class Homing {
         +execute_homing()
@@ -67,11 +67,14 @@ classDiagram
     class MockMotor {
         <<tests>>
     }
+    class MoteusLib["moteus::Controller"] {
+        <<mjbots library>>
+    }
     MotorBase <|-- MoteusController
     MotorBase <|-- StepperController
     MotorBase <|-- MockMotor
     Homing --> MotorBase : drives
-    MoteusController *-- "moteus::Controller"
+    MoteusController *-- MoteusLib
 ```
 
 All moves take **revolutions**, **rev/s** for speed and **rev/s²** for acceleration. Every call returns `std::optional<CurrentStatus>` (`position`, `speed`, `status_code`); `nullopt` means the command failed.
@@ -130,7 +133,7 @@ stateDiagram-v2
     TRIGGERED --> BACKING_OFF: reverse slowly
     BACKING_OFF --> HUNTING: switch released, approach slowly
     HUNTING --> HOMED: switch hit again, stop
-    HOMED --> FINISHED: set_absolute_position(0)
+    HOMED --> FINISHED: set position to 0
     FINISHED --> [*]
 ```
 
