@@ -1,0 +1,56 @@
+name: C++ Build and Test
+
+on:
+  push:
+    branches:
+    - main
+    - "fix/**"
+    - "feat/**"
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+
+    steps:
+    # Step 1: Download your MAIN repository into a subfolder named 'moteus_test'
+    - name: Checkout Main Project Repo
+      uses: actions/checkout@v4
+      with:
+        path: moteus_test
+
+    # Step 2: Download your DEPENDENCY repository into a subfolder named 'gpio_wrapper'
+    - name: Checkout GPIO Wrapper Dependency Repo
+      uses: actions/checkout@v4
+      with:
+        # GPIO wrapper from repo
+        repository: 'jtoobias/gpiod_wrapper' # 
+        path: 'gpio_wrapper'
+
+    # Step 3: Set up the required standard physical/hardware system package libraries
+    - name: Install Industrial Linux OS Hardware Drivers
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libgpiod-dev \
+          libgtest-dev
+
+    # Step 4: Configure CMake standing explicitly inside your main repository directory
+    - name: Run CMake Configuration
+      working-directory: ./moteus_test
+      run: cmake -B build -S . -DBUILD_TESTING=ON
+
+    # Step 5: Compile the whole module core using parallel CPU threading
+    - name: Build Core Library and Test Binary Execution Targets
+      working-directory: ./moteus_test
+      run: cmake --build build --parallel $(nproc)
+
+    # Step 6: Trigger CTest execution to report your telemetry pass metrics
+    - name: Execute Asynchronous State Machine Test Suite
+      working-directory: ./moteus_test/build
+      run: ctest --output-on-failure

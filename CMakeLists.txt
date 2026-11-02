@@ -5,43 +5,47 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# 1. FIND PACKAGES FIRST (So the variables actually exist)
+# 1. FIND SYSTEM PACKAGES GLOBALLY
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GPIOD REQUIRED libgpiod)
 pkg_check_modules(GPIODCXX REQUIRED libgpiodcxx)
 
+# 2. FETCH EXTERNAL DEPENDENCIES
 include(FetchContent)
+
 FetchContent_Declare(
     gpio_wrapper
-    # Replace this with the absolute or relative path to your moved library
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../gpio_wrapper
     DOWNLOAD_COMMAND ""
 )
-
 FetchContent_MakeAvailable(gpio_wrapper)
+
 FetchContent_Declare(
   moteus
   GIT_REPOSITORY https://github.com/mjbots/moteus.git
-  # Pin to a specific commit for a reproducible build.  The trailing
-  # comment names the corresponding C++ release tag for readers.
   GIT_TAG        e4459e78aa80a90d40ccfc57584e1cd94b6903e2  # cpp/v1.0.0
 )
 FetchContent_MakeAvailable(moteus)
+set(moteus_SOURCE_DIR "${moteus_SOURCE_DIR}" CACHE INTERNAL "Expose moteus path to subdirectories")
 
-# 2. Define your executable main program
-add_executable(main main.cpp src/moteus_controller.cpp)
-add_executable(spin src/spin.cpp)
-target_link_libraries(spin PRIVATE moteus::cpp)
 
-# 4. Link everything to your executable target (gpio_toggle)
-target_include_directories(main PRIVATE 
-    ${GPIODCXX_INCLUDE_DIRS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/.." 
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        v1.14.0
 )
-target_link_libraries(main PRIVATE 
-    moteus::cpp
-    gpio_wrapper           # Links your custom GPIO code
-    ${GPIODCXX_LIBRARIES}  # Links libgpiod C++
-    ${GPIOD_LIBRARIES}     # Links libgpiod C base
-)
+
+# For Windows/MSVC runner compatibility, ensure runtime library matches
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) 
+FetchContent_MakeAvailable(googletest)
+
+# 3. SET UP TESTING CONFIGURATION
+option(BUILD_TESTING "Build the test suite" ON)
+if(BUILD_TESTING)
+    enable_testing()
+    # Targets 'gtest' and 'gtest_main' are now natively available!
+    add_subdirectory(tests) # Directs control to your tests/ folder
+endif()
+
+# 4. DELEGATE PRODUCTION COMPILATION TO SRC FOLDER
+add_subdirectory(src)
