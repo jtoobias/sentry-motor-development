@@ -85,7 +85,7 @@ std::optional<CurrentStatus> StepperController::set_absolute_position(double pos
   CurrentStatus status;
   current_step_pos_ = position;
   status.position = position;
-  status.speed = current_velocity_;
+  // status.speed = current_velocity_.load();
   status.status_code = static_cast<int>(status_.load());
   return status;
 }

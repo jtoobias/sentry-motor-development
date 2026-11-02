@@ -20,8 +20,8 @@
 
 
 enum class Direction{
-  CW = 0,
-  CCW = 1,
+  CW = 1,
+  CCW = -1,
 };
 
 enum class StatusCodes{
@@ -55,9 +55,9 @@ class StepperController : public MotorBase {
     GpioPin dir_;
     GpioPin step_;
     int max_step_pos_ = std::numeric_limits<int>::max();
-    int min_step_pos_ = std::numeric_limits<int>::min();
+    int min_step_pos_ = std::numeric_limits<int>::lowest();
     double max_rev_position_=std::numeric_limits<double>::max();
-    double min_rev_position_=std::numeric_limits<double>::min();
+    double min_rev_position_=std::numeric_limits<double>::lowest();
     double revs_per_step_{0};
 
     std::atomic<int>    current_step_pos_{0};
