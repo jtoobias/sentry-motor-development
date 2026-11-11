@@ -90,24 +90,24 @@ int main() {
     }
 
     // Test absolute position move
-    int count = 0;
-    real_motor->position_move_absolute(0.25, 0.1, 2.0);
-    while (count < 5) {
-        auto status = real_motor->get_current_status();
-        std::cout   << " Fault: " << static_cast<int>(status.status_code)
-                    << " ,Position: ," << status.position
-                    << " ,Velocity: ," << status.speed << "\n";
+    // int count = 0;
+    // real_motor->position_move_absolute(0.25, 0.1, 2.0);
+    // while (count < 5) {
+    //     auto status = real_motor->get_current_status();
+    //     std::cout   << " Fault: " << static_cast<int>(status.status_code)
+    //                 << " ,Position: ," << status.position
+    //                 << " ,Velocity: ," << status.speed << "\n";
 
-        if (status.position >= 0.25) {
-            std::cout << "Reached 0.25 revs, moving back to 0.0\n";
-            real_motor->position_move_absolute(-0.25, 0.1, 2.0);
-        } else if (status.position <= -0.25) {
-            std::cout << "Reached -0.25 revs, moving back to 0.0\n";
-            real_motor->position_move_absolute(0.25, 0.1, 2.0);
-            count ++;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    //     if (status.position >= 0.25) {
+    //         std::cout << "Reached 0.25 revs, moving back to 0.0\n";
+    //         real_motor->position_move_absolute(-0.25, 0.1, 2.0);
+    //     } else if (status.position <= -0.25) {
+    //         std::cout << "Reached -0.25 revs, moving back to 0.0\n";
+    //         real_motor->position_move_absolute(0.25, 0.1, 2.0);
+    //         count ++;
+    //     }
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // }
 
     run_application.store(false); // Shutdown the LED loop flag
     
